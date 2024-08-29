@@ -42,52 +42,51 @@ try {
 
 const loginUsuario =async (req,res=response)=>{
 
-    const { email, password} =req.body   
+    const { email, password } = req.body;
+
     try {
-        let usuario = await Usuario.findOne({email})
-        if(!usuario){
-         return res.status(400).json({
-             ok:false,
-             msg:'usuario no existe'
-         })
-        }
+        
+        const usuario = await Usuario.findOne({ email });
 
-        const validPassword = bcrypt.compareSync(password,usuario.password)
-        console.log(validPassword)
-        if(!validPassword){
+        if ( !usuario ) {
             return res.status(400).json({
-                ok:false,
-                msg:'password incorrecto'
-            })
+                ok: false,
+                msg: 'El usuario no existe con ese email'
+            });
         }
-        //generar nuestro token
-        const token = await generatJWT(usuario.id,usuario.name)
 
+        // Confirmar los passwords
+        const validPassword = bcrypt.compareSync( password, usuario.password );
 
-        res.status(201).json({
-            ok:true,
-            uid:usuario.id,
-            name:usuario.name,
+        if ( !validPassword ) {
+            return res.status(400).json({
+                ok: false,
+                msg: 'Password incorrecto'
+            });
+        }
+
+        // Generar JWT
+        const token = await generatJWT( usuario.id, usuario.name );
+
+        res.json({
+            ok: true,
+            uid: usuario.id,
+            name: usuario.name,
             token
         })
-        
+
+
     } catch (error) {
-        console.log(error)
+        console.log(error);
         res.status(500).json({
-            ok:false,
-            msg:'por favor hable con el administrador'
-        })
+            ok: false,
+            msg: 'Por favor hable con el administrador'
+        });
     }
+}
    
 
-    
-    res.json({
-        ok:true,
-        msg:'login',
-        email,
-        password
-    })
-}
+
 const revalidarToken = async(req,res=response)=>{
     const {uid,name} =req.body 
 
